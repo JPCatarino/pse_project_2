@@ -83,7 +83,7 @@ int main( void )
 	prvSetupHardware();
 
     /* Run application */
-    mainSensorDataCollect();
+    mainLightController();
     
 	return 0;
 }

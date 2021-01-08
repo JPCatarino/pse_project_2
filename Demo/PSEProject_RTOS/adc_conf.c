@@ -9,7 +9,7 @@
         AD1CON2bits.VCFG = 0;
         AD1CON2bits.SMPI = 0;
         AD1CON3bits.ADRC = 1;
-
+        AD1CON3bits.SAMC = 16;   
         AD1CHSbits.CH0SA = 0;
         AD1PCFGbits.PCFG0 = 0;
 

@@ -41,7 +41,9 @@
       <itemPath>../../UART/uart.c</itemPath>
       <itemPath>../adc_conf.c</itemPath>
       <itemPath>../adc_conf.h</itemPath>
-      <itemPath>../mainSensorDataCollect.c</itemPath>
+      <itemPath>../ConfigModules.c</itemPath>
+      <itemPath>../ConfigModules.h</itemPath>
+      <itemPath>../mainLightController.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
