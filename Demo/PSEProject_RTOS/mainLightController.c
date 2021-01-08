@@ -40,28 +40,18 @@
 
 /* Task rates */
 #define ACQUIRE_PERIOD_MS 	    ( 100 / portTICK_RATE_MS )
-#define UI_PERIOD_MS 	        ( 150  / portTICK_RATE_MS )
-#define DECISION_PERIOD_MS 	    ( 200  / portTICK_RATE_MS )
-#define ACTUATION_PERIOD_MS 	( 800  / portTICK_RATE_MS )
 
 /* Priorities of the demo application tasks (high numb. -> high prio.) */
 #define ACQ_PRIORITY	        ( tskIDLE_PRIORITY + 4 )
-#define UI_PRIORITY	            ( tskIDLE_PRIORITY + 3 )
-#define DECISION_PRIORITY	    ( tskIDLE_PRIORITY + 2 )
-#define ACTUATION_PRIORITY	    ( tskIDLE_PRIORITY + 1 )
+#define UI_PRIORITY	            ( tskIDLE_PRIORITY + 1 )
+#define DECISION_PRIORITY	    ( tskIDLE_PRIORITY + 3 )
+#define ACTUATION_PRIORITY	    ( tskIDLE_PRIORITY + 2 )
 
 /* Task Handlers */
 static TaskHandle_t AcqHandler = NULL;
 static TaskHandle_t UIHandler = NULL;
 static TaskHandle_t DecisionHandler = NULL;
 static TaskHandle_t ActuationHandler = NULL;
-
-/* Queue*/
-#define QUEUE_LENGTH    5
-#define ITEM_SIZE       sizeof( int )
-
-QueueHandle_t QueueAcqProc;
-QueueHandle_t QueueProcOut;
 
 int LDR_Value;
 int number = 0;
@@ -94,242 +84,251 @@ void AcqTask(void *params)
 
         LDR_Value = ((ADC1BUF0 * 3300) / 1023);
 
-        //xTaskNotifyGive(ProcHandler); // Notificar
-
+        if(current_state == AutomaticSwitch || current_state == AutomaticAjust)
+        {
+            xTaskNotifyGive(DecisionHandler); // Notificar
+        }
+        
         vTaskDelayUntil(&lastticks, ACQUIRE_PERIOD_MS);
     }
 }
 
 void UITask(void *params)
 {
-    TickType_t lastticks = xTaskGetTickCount();   
-
+    int notificationValue;
     for(;;){
-        switch (letter)
-        {
-            case 'o':
-                TerminalStatus = t_On_Off;
-                break;
-            case 'l':
-                lock = (lock + 1) % 2;
-                break;
-            case '>':
-                TerminalStatus = t_More_intensity;
-                break;
-            case '<':
-                TerminalStatus = t_Less_intensity;
-                break;
-            case 'm':
-                current_state = (current_state + 1) % 4;
-                break;
-            case 'n':
-                current_state = (current_state - 1) % 4;
-                break;
-            case 'w':
-                if(number >= Min_Intensity && number <= 100)
-                {
-                    Max_Intensity = number;
-                }
-                number = 0;
-                break;
-            case 's':
-                if(number <= Max_Intensity && number >= 0)
-                {
-                    Min_Intensity = number;
-                }
-                number = 0;
-                break;
-            case 'g':
-                if(number >= 0)
-                {
-                    LDR_Led_On_Value = number;
-                }
-                number = 0;
-                break;
-            case 't':
-                if(number >= 0 && number <= 100)
-                {
-                    speed = number;
-                }
-                number = 0;
-                break;
-            case 'c':   number = 0;             break;
-            case '0':   number = number*10 + 0; break;
-            case '1':   number = number*10 + 1; break;
-            case '2':   number = number*10 + 2; break;
-            case '3':   number = number*10 + 3; break;
-            case '4':   number = number*10 + 4; break;
-            case '5':   number = number*10 + 5; break;
-            case '6':   number = number*10 + 6; break;
-            case '7':   number = number*10 + 7; break;
-            case '8':   number = number*10 + 8; break;
-            case '9':   number = number*10 + 9; break;
-        }
-        letter = ' ';
-
-        switch (Button)
-        {
-            case 1:
-                OnStatus = (OnStatus + 1) % 2;
-                break;
-            case 2:
-                if(lock == Unlocked)
-                {
+        notificationValue = ulTaskNotifyTake(pdTRUE, (TickType_t) portMAX_DELAY);
+        if (notificationValue > 0){
+            switch (letter)
+            {
+                case 'o':
+                    TerminalStatus = t_On_Off;
+                    break;
+                case 'l':
+                    lock = (lock + 1) % 2;
+                    break;
+                case '>':
+                    TerminalStatus = t_More_intensity;
+                    break;
+                case '<':
+                    TerminalStatus = t_Less_intensity;
+                    break;
+                case 'm':
                     current_state = (current_state + 1) % 4;
-                }
-                break;
-            case 3:
-                if(lock == Unlocked)
-                {
+                    print_current_state(current_state);
+                    break;
+                case 'n':
                     current_state = (current_state - 1) % 4;
-                }
-                break;
+                    print_current_state(current_state);
+                    break;
+                case 'w':
+                    if(number >= Min_Intensity && number <= 100)
+                    {
+                        Max_Intensity = number;
+                    }
+                    number = 0;
+                    break;
+                case 's':
+                    if(number <= Max_Intensity && number >= 0)
+                    {
+                        Min_Intensity = number;
+                    }
+                    number = 0;
+                    break;
+                case 'g':
+                    if(number >= 0)
+                    {
+                        LDR_Led_On_Value = number;
+                    }
+                    number = 0;
+                    break;
+                case 't':
+                    if(number >= 0 && number <= 100)
+                    {
+                        speed = number;
+                    }
+                    number = 0;
+                    break;
+                case 'p':
+                    print_help();
+                    break;
+                case 'c':   number = 0;             break;
+                case '0':   number = number*10 + 0; break;
+                case '1':   number = number*10 + 1; break;
+                case '2':   number = number*10 + 2; break;
+                case '3':   number = number*10 + 3; break;
+                case '4':   number = number*10 + 4; break;
+                case '5':   number = number*10 + 5; break;
+                case '6':   number = number*10 + 6; break;
+                case '7':   number = number*10 + 7; break;
+                case '8':   number = number*10 + 8; break;
+                case '9':   number = number*10 + 9; break;
+            }
+            letter = ' ';
+
+            switch (Button)
+            {
+                case 1:
+                    OnStatus = (OnStatus + 1) % 2;
+                    break;
+                case 2:
+                    if(lock == Unlocked)
+                    {
+                        current_state = (current_state + 1) % 4;
+                        print_current_state(current_state);
+                    }
+                    break;
+                case 3:
+                    if(lock == Unlocked)
+                    {
+                        current_state = (current_state - 1) % 4;
+                        print_current_state(current_state);
+                    }
+                    break;
+            }
+            Button = 0;
+            
+            xTaskNotifyGive(DecisionHandler); // Notificar
         }
-        Button = 0;
-        vTaskDelayUntil(&lastticks, UI_PERIOD_MS);
     }
 }
 
 void DecisionTask(void *params)
 {
-    TickType_t lastticks = xTaskGetTickCount();   
+    int notificationValue;
 
     for(;;){
+        notificationValue = ulTaskNotifyTake(pdTRUE, (TickType_t) portMAX_DELAY);
+        if (notificationValue > 0){
+            switch (current_state) 
+            {
+                case ManualMode:
 
-        switch (current_state) 
-        {
-            case ManualMode:
-
-                if((TerminalStatus == t_On_Off) || ((lock == Unlocked) && (OnStatus == b_Pressed)))
-                {
-                    if(Intensity_Value == 0)
+                    if((TerminalStatus == t_On_Off) || ((lock == Unlocked) && (OnStatus == b_Pressed)))
                     {
-                        Intensity_Value = 100;
+                        if(Intensity_Value == 0)
+                        {
+                            Intensity_Value = 100;
+                        }
+                        else
+                        {
+                            Intensity_Value = 0;
+                        }
+                    }     
+
+                    OnStatus = b_Wait;
+                    TerminalStatus = t_Wait;
+                    break;
+                case Dimmer:
+
+                    if(Intensity_Value < Min_Intensity)
+                    {
+                        Intensity_Value = Min_Intensity;
+                    }
+                    else if(Intensity_Value > Max_Intensity)
+                    {
+                        Intensity_Value = Max_Intensity;
+                    }
+
+                    if((TerminalStatus == t_On_Off) || ((lock == Unlocked) && (OnStatus == b_Pressed)))
+                    {
+                        if(Intensity_Value > Min_Intensity)
+                        {
+                            Intensity_Stored_Value = Intensity_Value;
+                            Intensity_Value = Min_Intensity;
+                        }
+                        else 
+                        {
+                            if(Intensity_Stored_Value < Min_Intensity)
+                            {
+                                Intensity_Value = Min_Intensity; 
+                            }
+                            else if(Intensity_Stored_Value > Max_Intensity)
+                            {
+                                Intensity_Value = Max_Intensity; 
+                            }
+                            else
+                            {
+                                Intensity_Value =  Intensity_Stored_Value; 
+                            }
+                        }                                                      
+                    }                
+                    else 
+                    {
+                        if((TerminalStatus == t_More_intensity) )
+                        {
+                            if ((Intensity_Value + 10) <= Max_Intensity)
+                            {         
+                                Intensity_Value = Intensity_Value + 10;
+                                Intensity_Stored_Value = Intensity_Value;
+                            }
+                        } 
+                        if((TerminalStatus == t_Less_intensity))
+                        {
+                            if ((Intensity_Value - 10) >= Min_Intensity) 
+                            {           
+                                Intensity_Value = Intensity_Value-10;
+                                Intensity_Stored_Value = Intensity_Value;
+                            }
+
+                        }      
+                    }       
+                    OnStatus = b_Wait;
+                    TerminalStatus = t_Wait;
+                    break;
+                case AutomaticSwitch:
+                    if(LDR_Value > LDR_Led_On_Value)
+                    {
+                        if(Intensity_Value <= Max_Intensity)
+                        {
+                            if(Intensity_Value + speed > 100)
+                            {
+                                Intensity_Value = Max_Intensity;
+                            }
+                            else
+                            {
+                                Intensity_Value += speed;  
+                            }
+                        }
                     }
                     else
                     {
-                        Intensity_Value = 0;
+                        if(Intensity_Value >= Min_Intensity)
+                        {
+                            if(Intensity_Value - speed < 0)
+                            {
+                                Intensity_Value = Min_Intensity;
+                            }
+                            else
+                            {
+                                Intensity_Value -= speed;  
+                            }
+                        }
+                    }           
+                    break;
+                case AutomaticAjust:
+                    if(LDR_Value > LDR_Led_On_Value + 100 && Intensity_Value < Max_Intensity)
+                    {
+                        Intensity_Value++;  
                     }
-                }     
-
-                OnStatus = b_Wait;
-                TerminalStatus = t_Wait;
-                break;
-            case Dimmer:
-
-                if(Intensity_Value < Min_Intensity)
-                {
-                    Intensity_Value = Min_Intensity;
-                }
-                else if(Intensity_Value > Max_Intensity)
-                {
-                    Intensity_Value = Max_Intensity;
-                }
-
-                if((TerminalStatus == t_On_Off) || ((lock == Unlocked) && (OnStatus == b_Pressed)))
-                {
-                    if(Intensity_Value > Min_Intensity)
+                    else if(LDR_Value < LDR_Led_On_Value - 100 && Intensity_Value > Min_Intensity)
                     {
-                        Intensity_Stored_Value = Intensity_Value;
-                        Intensity_Value = Min_Intensity;
-                    }
-                    else 
-                    {
-                        if(Intensity_Stored_Value < Min_Intensity)
-                        {
-                            Intensity_Value = Min_Intensity; 
-                        }
-                        else if(Intensity_Stored_Value > Max_Intensity)
-                        {
-                            Intensity_Value = Max_Intensity; 
-                        }
-                        else
-                        {
-                            Intensity_Value =  Intensity_Stored_Value; 
-                        }
-                    }                                                      
-                }                
-                else 
-                {
-                    if((TerminalStatus == t_More_intensity) )
-                    {
-                        if ((Intensity_Value + 10) <= Max_Intensity)
-                        {         
-                            Intensity_Value = Intensity_Value + 10;
-                            Intensity_Stored_Value = Intensity_Value;
-                        }
-                    } 
-                    if((TerminalStatus == t_Less_intensity))
-                    {
-                        if ((Intensity_Value - 10) >= Min_Intensity) 
-                        {           
-                            Intensity_Value = Intensity_Value-10;
-                            Intensity_Stored_Value = Intensity_Value;
-                        }
-
-                    }      
-                }       
-                OnStatus = b_Wait;
-                TerminalStatus = t_Wait;
-                break;
-            case AutomaticSwitch:
-                printf("Automatic\r\n");
-                printf("LDR Value: %d\r\n", LDR_Value);
-                printf("On_Val: %d\r\n", LDR_Led_On_Value);
-                if(LDR_Value > LDR_Led_On_Value)
-                {
-                    if(Intensity_Value <= Max_Intensity)
-                    {
-                        if(Intensity_Value + speed > 100)
-                        {
-                            Intensity_Value = Max_Intensity;
-                        }
-                        else
-                        {
-                            Intensity_Value += speed;  
-                        }
-                    }
-                }
-                else
-                {
-                    if(Intensity_Value >= Min_Intensity)
-                    {
-                        if(Intensity_Value - speed < 0)
-                        {
-                            Intensity_Value = Min_Intensity;
-                        }
-                        else
-                        {
-                            Intensity_Value -= speed;  
-                        }
-                    }
-                }           
-                break;
-            case AutomaticAjust:
-                printf("matic\r\n");
-                printf("LDR Value: %d\r\n", LDR_Value);
-                printf("On_Val: %d\r\n", LDR_Led_On_Value);
-                if(LDR_Value > LDR_Led_On_Value + 100 && Intensity_Value < Max_Intensity)
-                {
-                    Intensity_Value++;  
-                }
-                else if(LDR_Value < LDR_Led_On_Value - 100 && Intensity_Value > Min_Intensity)
-                {
-                    Intensity_Value--;  
-                }              
-                break;
+                        Intensity_Value--;  
+                    }              
+                    break;
+            }
+            xTaskNotifyGive(ActuationHandler); // Notificar
         }
-        vTaskDelayUntil(&lastticks, DECISION_PERIOD_MS);
     }
 }
 
 void ActuationTask(void* params){
-    TickType_t lastticks = xTaskGetTickCount();   
-
+    int notificationValue;
     for(;;){
-        printf("%d", Intensity_Value);
-        OC2RS = Intensity_Value*10;
-        vTaskDelayUntil(&lastticks, DECISION_PERIOD_MS);
+        notificationValue = ulTaskNotifyTake(pdTRUE, (TickType_t) portMAX_DELAY);
+        if (notificationValue > 0){
+            OC2RS = Intensity_Value*10;
+        }
     }
 }
 
@@ -345,6 +344,8 @@ void init_light_controller(void){
     LDR_Led_On_Value = 2500;
     speed = 1;
     current_state = ManualMode;
+    print_current_state(current_state);
+    print_help();
 }
 
 void __ISR(_EXTERNAL_0_VECTOR,IPL4AUTO) button_on_off_isr(void)
@@ -352,6 +353,7 @@ void __ISR(_EXTERNAL_0_VECTOR,IPL4AUTO) button_on_off_isr(void)
     if( Button == 0 ) 
     {
         Button = 1;
+        vTaskNotifyGiveFromISR(UIHandler, NULL);
     }
     IFS0bits.INT0IF = 0;
 }
@@ -361,6 +363,7 @@ void __ISR(_EXTERNAL_1_VECTOR,IPL3AUTO) button_plus_isr(void)
     if( Button == 0 )
     {
         Button = 2;
+        vTaskNotifyGiveFromISR(UIHandler, NULL);
     }
     IFS0bits.INT1IF = 0;
 }
@@ -370,6 +373,7 @@ void __ISR(_EXTERNAL_2_VECTOR,IPL3AUTO) button_less_isr(void)
     if( Button == 0 ) 
     {
         Button = 3;
+        vTaskNotifyGiveFromISR(UIHandler, NULL);
     }
     IFS0bits.INT2IF = 0;
 }
@@ -379,6 +383,7 @@ void __ISR(_UART_1_VECTOR, IPL5AUTO) uart_isr (void)
     if( letter == ' ' ) 
     {
         GetChar(&letter);
+        vTaskNotifyGiveFromISR(UIHandler, NULL);
     }
     IFS0bits.U1RXIF = 0;    
 }
@@ -405,24 +410,14 @@ int mainLightController( void )
     configureADC1(7);
     adc1_control(1);
 
-    // Init base values
-    init_light_controller();
-
-    // Create queue
-    QueueAcqProc = xQueueCreate(QUEUE_LENGTH,
-                            ITEM_SIZE);
-    
-    QueueProcOut = xQueueCreate(QUEUE_LENGTH,
-                            ITEM_SIZE);
-
-    configASSERT( QueueAcqProc );
-    configASSERT( QueueProcOut );
-
 	// Init UART and redirect tdin/stdot/stderr to UART
     if(UartInit(configPERIPHERAL_CLOCK_HZ, 115200) != UART_SUCCESS) {
         PORTAbits.RA3 = 1; // If Led active error initializing UART
         while(1);
     }
+    
+    // Init base values
+    init_light_controller();
 
      __XC_UART = 1; /* Redirect stdin/stdout/stderr to UART1*/
     
@@ -433,7 +428,7 @@ int mainLightController( void )
     xTaskCreate( AcqTask, ( const signed char * const ) "Acq", configMINIMAL_STACK_SIZE, NULL, ACQ_PRIORITY, &AcqHandler );
     xTaskCreate( UITask, ( const signed char * const ) "UI", configMINIMAL_STACK_SIZE, NULL, UI_PRIORITY, &UIHandler );
     xTaskCreate( DecisionTask, ( const signed char * const ) "Dec", configMINIMAL_STACK_SIZE, NULL, DECISION_PRIORITY, &DecisionHandler );
-    xTaskCreate( ActuationTask, ( const signed char * const ) "Act", configMINIMAL_STACK_SIZE, NULL, DECISION_PRIORITY, &ActuationHandler );
+    xTaskCreate( ActuationTask, ( const signed char * const ) "Act", configMINIMAL_STACK_SIZE, NULL, ACTUATION_PRIORITY, &ActuationHandler );
 
     /* Finally start the scheduler. */
 	vTaskStartScheduler();

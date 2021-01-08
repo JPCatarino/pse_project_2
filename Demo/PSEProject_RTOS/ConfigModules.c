@@ -1,5 +1,7 @@
 #include <xc.h>
 #include "ConfigModules.h"
+#include "../UART/uart.h"
+
 
 void ConfigIOpins(void)
 {
@@ -17,7 +19,7 @@ void ConfigOC2(void)
     OC2CONbits.ON = 0;                    
     OC2CONbits.OCM = 6;                   
     OC2CONbits.OCTSEL = 0;
-    OC2RS = 100;
+    OC2RS = 0;
     OC2CONbits.ON = 1;
 }
 
@@ -64,4 +66,38 @@ void InitInterruptController(void)
     IEC0bits.U1RXIE = 1;
 
     INTCONSET=_INTCON_MVEC_MASK;
+}
+
+void print_string(char* message){
+    int i=0;
+  
+    for(i=0;message[i]!=0;i++){
+        PutChar(message[i]);
+    }
+}
+
+void print_current_state(uint8_t currentState){
+    switch(currentState){
+        case 0: ;
+            print_string("\r\nManual Mode\r\n");
+            break;
+        case 1: ;
+            print_string("\r\nDimmer Mode\r\n");
+            break;
+        case 2: ;
+            print_string("\r\nAutomatic Switch Mode\r\n");
+            break;
+        case 3: ;
+            print_string("\r\nAutomatic Adjust Mode\r\n");
+            break;            
+    }
+}
+
+void print_help(void){
+    print_string("\nButton (ON/OFF):\tpin3\r");
+    print_string("\nButton (+ mode):\tpin2\r");
+    print_string("\nButton (- mode):\tpin7\r");
+    print_string("\n\nTerminal:\r\n\to (ON/OFF)\r\n\t> (More_intensity)\r\n\t< (Less_intensity)\r\n\tl (lock)\r\n\tm (+ mode)\r\n\tn (- mode)");
+    print_string("\n\n\r\tw (Set_max_intensity)\r\n\ts (Set_min_intensity)\r\n\tg (Set_LDR_on_value)\r\n\tm (mode)\r\n\tt (speed)");
+
 }

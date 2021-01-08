@@ -23,3 +23,6 @@ void ConfigIOpins(void);
 void ConfigOC2(void);
 void ConfigTimer(void);
 void InitInterruptController(void);
+void print_string(char* message);
+void print_current_state(uint8_t currentState);
+void print_help(void);
