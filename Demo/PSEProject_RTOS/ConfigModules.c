@@ -98,6 +98,6 @@ void print_help(void){
     print_string("\nButton (+ mode):\tpin2\r");
     print_string("\nButton (- mode):\tpin7\r");
     print_string("\n\nTerminal:\r\n\to (ON/OFF)\r\n\t> (More_intensity)\r\n\t< (Less_intensity)\r\n\tl (lock)\r\n\tm (+ mode)\r\n\tn (- mode)");
-    print_string("\n\n\r\tw (Set_max_intensity)\r\n\ts (Set_min_intensity)\r\n\tg (Set_LDR_on_value)\r\n\tm (mode)\r\n\tt (speed)");
+    print_string("\n\n\r\tw (Set_max_intensity)\r\n\ts (Set_min_intensity)\r\n\tg (Set_LDR_on_value)\r\n\tm (mode)\r\n\tt (speed)\r\n");
 
 }

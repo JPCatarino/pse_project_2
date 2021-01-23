@@ -350,7 +350,7 @@ void init_light_controller(void){
 
 void __ISR(_EXTERNAL_0_VECTOR,IPL4AUTO) button_on_off_isr(void)
 {
-    if( Button == 0  && letter = ' ') 
+    if( Button == 0  && letter == ' ') 
     {
         Button = 1;
         vTaskNotifyGiveFromISR(UIHandler, NULL);
@@ -360,7 +360,7 @@ void __ISR(_EXTERNAL_0_VECTOR,IPL4AUTO) button_on_off_isr(void)
 
 void __ISR(_EXTERNAL_1_VECTOR,IPL3AUTO) button_plus_isr(void)
 {
-    if( Button == 0 && letter = ' ')
+    if( Button == 0 && letter == ' ')
     {
         Button = 2;
         vTaskNotifyGiveFromISR(UIHandler, NULL);
@@ -370,7 +370,7 @@ void __ISR(_EXTERNAL_1_VECTOR,IPL3AUTO) button_plus_isr(void)
 
 void __ISR(_EXTERNAL_2_VECTOR,IPL3AUTO) button_less_isr(void)
 {
-    if( Button == 0 && letter = ' ') 
+    if( Button == 0 && letter == ' ') 
     {
         Button = 3;
         vTaskNotifyGiveFromISR(UIHandler, NULL);
