@@ -44,8 +44,8 @@
 /* Priorities of the demo application tasks (high numb. -> high prio.) */
 #define ACQ_PRIORITY	        ( tskIDLE_PRIORITY + 4 )
 #define UI_PRIORITY	            ( tskIDLE_PRIORITY + 1 )
-#define DECISION_PRIORITY	    ( tskIDLE_PRIORITY + 3 )
-#define ACTUATION_PRIORITY	    ( tskIDLE_PRIORITY + 2 )
+#define DECISION_PRIORITY	    ( tskIDLE_PRIORITY + 2 )
+#define ACTUATION_PRIORITY	    ( tskIDLE_PRIORITY + 3 )
 
 /* Task Handlers */
 static TaskHandle_t AcqHandler = NULL;

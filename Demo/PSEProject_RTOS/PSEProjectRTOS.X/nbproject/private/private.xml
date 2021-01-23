@@ -9,8 +9,10 @@
             <file>file:/C:/E/Dev/FreeRTOS/WorkingCopy/FreeRTOS/Demo/PIC32MX_MPLAB/main_full.c</file>
         </group>
         <group>
-            <file>file:/C:/Users/jorpc/projectos/pse_project_2/Demo/PSEProject_RTOS/ConfigModules.c</file>
+            <file>file:/C:/Users/jorpc/projectos/pse_project_2/Source/include/task.h</file>
+            <file>file:/C:/Users/jorpc/projectos/pse_project_2/Demo/PSEProject_RTOS/FreeRTOSConfig.h</file>
             <file>file:/C:/Users/jorpc/projectos/pse_project_2/Demo/PSEProject_RTOS/mainLightController.c</file>
+            <file>file:/C:/Users/jorpc/projectos/pse_project_2/Demo/PSEProject_RTOS/main.c</file>
         </group>
     </open-files>
 </project-private>
